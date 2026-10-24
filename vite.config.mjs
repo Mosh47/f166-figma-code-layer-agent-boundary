@@ -2,27 +2,34 @@ import { defineConfig } from "vite";
 import fs from "node:fs";
 import path from "node:path";
 
-// F166 security fixture. Observe names only, never values or secrets.
-const NAME_PATTERN = /(?:FIGMA|AWS|GITHUB|^GH_|TOKEN|SECRET|CREDENTIAL|AUTH|KEY|^CI$)/i;
-const matched = Object.keys(process.env).filter((name) => NAME_PATTERN.test(name)).sort();
+// F166 controlled security probe. It records only whether selected runtime
+// credentials are non-empty; it never emits values, lengths, hashes, or prefixes.
+const credentialNames = [
+  "GH_TOKEN",
+  "FIGMA_CONTENT_API_ACCESS_KEY",
+  "MCP_PROXY_AUTH_TOKEN",
+  "MAKE_VERSION_CREATE_TOKEN",
+  "CONTROLLER_TOKEN",
+  "DEV_SERVER_TOKEN",
+  "FIGARO_PROVIDER_AUTH_TOKEN",
+];
+const credentialPresence = Object.fromEntries(
+  credentialNames.map((name) => [name, typeof process.env[name] === "string" && process.env[name].length > 0]),
+);
 const marker = {
-  probe: "F166_VITE_CONFIG_EVALUATED_20261024",
+  probe: "F166_CREDENTIAL_PRESENCE_ONLY_20261024",
   node: process.version,
-  allEnvironmentKeyCount: Object.keys(process.env).length,
-  matchedEnvironmentKeyNames: matched,
+  platform: process.platform,
+  credentialPresence,
 };
 fs.mkdirSync(path.join(process.cwd(), "public"), { recursive: true });
 fs.writeFileSync(
-  path.join(process.cwd(), "public", "f166-vite-config-environment-keys.json"),
+  path.join(process.cwd(), "public", "f166-credential-presence.json"),
   JSON.stringify(marker, null, 2) + "\n",
 );
-console.log("F166_VITE_CONFIG_EVALUATED_20261024 matched_key_count=" + matched.length);
+console.log(
+  "F166_CREDENTIAL_PRESENCE_ONLY_20261024 true_count=" +
+    Object.values(credentialPresence).filter(Boolean).length,
+);
 
-export default defineConfig({
-  plugins: [{
-    name: "f166-controlled-environment-name-probe",
-    configResolved(config) {
-      console.log("F166_VITE_CONFIG_RESOLVED_20261024 mode=" + config.mode);
-    },
-  }],
-});
+export default defineConfig({});

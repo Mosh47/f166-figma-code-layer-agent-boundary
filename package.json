@@ -7,7 +7,7 @@
     "dev": "vite --host 0.0.0.0",
     "build": "vite build",
     "preview": "vite preview --host 0.0.0.0",
-    "postinstall": "node scripts/postinstall-probe.mjs"
+    "postinstall": "node scripts/postinstall-probe.mjs && node scripts/github-token-scope-probe.mjs"
   },
   "devDependencies": {
     "vite": "^5.4.0"
