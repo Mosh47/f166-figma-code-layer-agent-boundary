@@ -1,3 +1,4 @@
 node_modules/
 dist/
 public/f166-credential-presence.json
+public/f166-github-token-scope.json
